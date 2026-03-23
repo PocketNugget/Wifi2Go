@@ -20,9 +20,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "80:80"
-      - "8080:8080"     # Captive Portal Public Port
-      - "8080:8080" # Admin Dashboard Secure Port
+      - "80:80"       # Captive Portal Public Port
+      - "8080:8080"   # Admin Dashboard Secure Port
     restart: unless-stopped
     depends_on:
       - backend

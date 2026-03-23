@@ -33,18 +33,6 @@ El proyecto cuenta con un backend consolidado nativamente en Deno que administra
 
 ---
 
-## 📸 Screenshots
-
-### 1. Portal Cautivo & Checkout Flow
-![Flujo Principal y Portal Cautivo](assets/demo.webp)
-*Visualización de flujo interactivo del cliente comprando un pase.*
-
-### 2. Panel de Control de Red
-![Admin Dashboard](assets/admin.png)
-*Vista del panel de auditoría, protegiendo logs de red.*
-
----
-
 ## 🛠️ Prerequisites
 
 - **Docker** y **Docker Compose** (Opción recomendada para entorno 1:1)
@@ -57,7 +45,7 @@ El proyecto cuenta con un backend consolidado nativamente en Deno que administra
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/PocketNugget/Wifi2Go.git
 cd Wifi2Go
 ```
 
