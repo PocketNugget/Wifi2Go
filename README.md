@@ -10,6 +10,11 @@
 
 ---
 
+## 📋 Estado Actual: Fase 2 Completada (Portal Privado & Público Listos)
+El proyecto cuenta con un backend consolidado nativamente en Deno que administra la arquitectura concurrente para tanto el Panel Administrativo (Puerto 8080) como el Portal Cautivo para Invitados (Puerto 80). Se ha incluido soporte de Autenticación cifrada en Dos Pasos (TOTP) al vuelo, Webhooks transaccionales y procesadores dinámicos de conexiones efímeras enganchadas simuladamente interactuando en las restricciones del Firewall perimetral. **Referirse a `DOCUMENTATION.md` y a `NEXT_STEPS.md` para ver el diseño técnico formal y el roadmap a futuro.**
+
+---
+
 ## 🚀 ¿Qué es NetConnect (Wifi2Go)?
 
 **NetConnect App** es una plataforma centralizada para gestionar accesos a red WiFi pública por demanda. Cuando los usuarios intentan navegar, el router los atrapa en un **Portal Cautivo**, pagan por tiempo (Stripe/PayPal), y un webhook libera su MAC e IP en el cortafuegos. Incluye un dashboard de administrador ultra-seguro, construido en una arquitectura aislada dentro de módulos Docker en ARM64 nativo.

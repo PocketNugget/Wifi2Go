@@ -12,11 +12,18 @@ export default function AdminLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (username === 'admin' && password === 'admin123') {
-        localStorage.setItem('admin_token', "mock_token");
+      const res = await fetch('/admin-api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        localStorage.setItem('admin_token', data.token);
         navigate('/admin/devices');
       } else {
-        setError('Invalid credentials');
+        setError(data.error || 'Invalid credentials');
       }
     } catch (err) {
       setError('Connection error');

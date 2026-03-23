@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const plans = [
-  { id: '1hr', title: '1 Hour Pass', price: '$2', icon: Clock, features: ['Unlimited Data', 'High Speed'], popular: false },
-  { id: '24hr', title: '24 Hours Pass', price: '$8', icon: Zap, features: ['Unlimited Data', 'Ultra Fast Speed', 'Multiple Devices'], popular: true },
+  { id: '5min', title: '5 Min Trial', price: 'Free', priceNum: 0, icon: Zap, features: ['Test the Network', 'Standard Speed'], popular: false },
+  { id: '1hr', title: '1 Hour Pass', price: '$2', priceNum: 2, icon: Clock, features: ['Unlimited Data', 'High Speed'], popular: false },
+  { id: '24hr', title: '24 Hours Pass', price: '$8', priceNum: 8, icon: Zap, features: ['Unlimited Data', 'Ultra Fast Speed', 'Multiple Devices'], popular: true },
 ];
 
 export default function Pricing() {
@@ -14,32 +15,59 @@ export default function Pricing() {
   const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/client/config')
+    const token = localStorage.getItem('client_token');
+    if (!token) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    fetch('/api/client/config')
       .then(res => res.json())
       .then(data => setIsTestMode(data.testMode))
       .catch(console.error);
-  }, []);
+  }, [navigate]);
 
-  const handleSelect = async (planId: string) => {
+  const handleSelect = async (planId: string, urlPrice: number) => {
     setLoading(true);
     try {
-      if (isTestMode) {
-        const res = await fetch('http://localhost:8000/api/payments/mock-success', {
+      const token = localStorage.getItem('client_token');
+      if (!token) throw new Error("No session");
+      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const clientId = payload.id;
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const macAddress = urlParams.get('mac') || "00:11:22:33:44:55";
+
+      const isFree = planId === '5min';
+      const duration = planId === '5min' ? 5 : (planId === '1hr' ? 60 : 1440);
+
+      if (isFree || isTestMode) {
+        const res = await fetch('/api/payments/webhook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            macAddress: "AA:BB:CC:DD:EE:FF", 
-            ipAddress: "192.168.1.100",
-            planHours: planId === '1hr' ? 1 : 24
+            client_id: clientId,
+            mac_address: macAddress,
+            amount: urlPrice,
+            durationMinutes: duration
           })
         });
         if (res.ok) navigate('/active');
       } else {
-        alert("Redirecting to secure Stripe Checkout... (Demo Mode is OFF)");
-        // window.location.href = result.sessionUrl;
+        const checkoutRes = await fetch('/api/payments/checkout', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planId, macAddress, clientId })
+        });
+        const data = await checkoutRes.json();
+        if (data.url) {
+           window.location.href = data.url;
+        } else {
+           alert("Stripe Checkout config pending API Keys");
+        }
       }
     } catch (e) {
       console.error(e);
+      alert("Error processing plan selection.");
     }
     setLoading(false);
   };
@@ -75,7 +103,7 @@ export default function Pricing() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 * (idx + 1), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => !loading && handleSelect(plan.id)}
+                onClick={() => !loading && handleSelect(plan.id, plan.priceNum)}
                 className={`glass relative cursor-pointer group flex flex-col p-8 rounded-[2rem] border-2 transition-all ${plan.popular ? 'border-appleBlue/50' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
               >
                 {plan.popular && (

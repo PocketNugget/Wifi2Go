@@ -4,7 +4,7 @@ import { DatabaseSync as Database } from "node:sqlite";
 // Our main process will run from `backend` directory.
 const DB_PATH = Deno.env.get("DB_PATH") || "./db_data/wifi2go.db";
 
-export type SecurityEventType = "auth_failure" | "spoof_attempt" | "network_error" | "firewall_update" | "system_start";
+export type SecurityEventType = "auth_failure" | "spoof_attempt" | "network_error" | "firewall_update" | "system_start" | "user_created" | "user_updated" | "user_deleted";
 
 export class SecurityLogger {
   private db: Database | null = null;

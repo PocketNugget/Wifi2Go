@@ -24,7 +24,7 @@ export default function Welcome() {
         <motion.button 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/pricing')}
+          onClick={() => navigate('/login')}
           className="w-full bg-appleBlue text-white rounded-2xl py-4 font-semibold flex items-center justify-center gap-2 shadow-lg shadow-appleBlue/30 transition-shadow"
         >
           Get Connected

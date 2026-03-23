@@ -71,7 +71,7 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
         mac: d.mac_address,
         ip: d.ip_address,
         status: session ? 'active' : 'inactive',
-        timeRemaining: session ? `Ends at ${new Date(session.end_time).toLocaleTimeString()}` : 'Expired',
+        timeRemaining: session ? `Ends at ${new Date(session.end_time as string).toLocaleTimeString()}` : 'Expired',
         type: 'device'
       };
     });
@@ -113,6 +113,66 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
       return new Response(JSON.stringify({ success: true, testMode }), { status: 200, headers: jsonHeaders });
     } catch(e: any) {
       return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: jsonHeaders });
+    }
+  }
+
+  if (url.pathname === "/admin-api/sessions" && req.method === "GET") {
+    const db = new Database(DB_PATH);
+    const sessions = db.prepare("SELECT * FROM sessions ORDER BY start_time DESC").all();
+    db.close();
+    return new Response(JSON.stringify(sessions), { status: 200, headers: jsonHeaders });
+  }
+
+  if (url.pathname === "/admin-api/clients" && req.method === "GET") {
+    const db = new Database(DB_PATH);
+    const clients = db.prepare("SELECT id, email, two_factor_enabled FROM clients").all();
+    db.close();
+    return new Response(JSON.stringify(clients), { status: 200, headers: jsonHeaders });
+  }
+
+  if (url.pathname === "/admin-api/clients" && req.method === "POST") {
+    try {
+      const { email, password } = await req.json();
+      const id = crypto.randomUUID();
+      const passwordHash = "hashed_" + password; 
+      const db = new Database(DB_PATH);
+      db.prepare("INSERT INTO clients (id, email, password_hash, two_factor_enabled) VALUES (?, ?, ?, 0)").run(id, email, passwordHash);
+      db.close();
+      logger.logEvent("user_created", null, null, `Admin created client ${email}`);
+      return new Response(JSON.stringify({ success: true, id }), { status: 201, headers: jsonHeaders });
+    } catch(e: any) {
+      return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: jsonHeaders });
+    }
+  }
+
+  if (url.pathname.startsWith("/admin-api/clients/") && req.method === "PUT") {
+    const id = url.pathname.split("/").pop();
+    if (id) {
+        try {
+          const { email, two_factor_enabled } = await req.json();
+          const db = new Database(DB_PATH);
+          db.prepare("UPDATE clients SET email = ?, two_factor_enabled = ? WHERE id = ?").run(email, two_factor_enabled ? 1 : 0, id);
+          db.close();
+          logger.logEvent("user_updated", null, null, `Admin updated client ${email}`);
+          return new Response(JSON.stringify({ success: true }), { status: 200, headers: jsonHeaders });
+        } catch(e: any) {
+             return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: jsonHeaders });
+        }
+    }
+  }
+
+  if (url.pathname.startsWith("/admin-api/clients/") && req.method === "DELETE") {
+    const id = url.pathname.split("/").pop();
+    if (id) {
+      try {
+        const db = new Database(DB_PATH);
+        db.prepare("DELETE FROM clients WHERE id = ?").run(id);
+        db.close();
+        logger.logEvent("user_deleted", null, null, `Admin deleted client ${id}`);
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: jsonHeaders });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: jsonHeaders });
+      }
     }
   }
 

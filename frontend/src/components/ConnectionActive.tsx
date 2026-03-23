@@ -10,7 +10,9 @@ export default function ConnectionActive() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/client/status?mac=AA:BB:CC:DD:EE:FF');
+        const urlParams = new URLSearchParams(window.location.search);
+        const mac = urlParams.get('mac') || '00:11:22:33:44:55';
+        const res = await fetch(`/api/client/status?mac=${mac}`);
         if (res.ok) {
           const data = await res.json();
           if (data.active) {

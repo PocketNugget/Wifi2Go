@@ -1,20 +1,15 @@
 import { DatabaseSync as Database } from "node:sqlite";
 
-// Absolute path to the database or relative to workspace. Deno will be mounted at /app
-// Inside docker: /app/db_data/wifi2go.db
-// Locally: ./db_data/wifi2go.db
 const DB_DIR = "db_data";
 const DB_PATH = `${DB_DIR}/wifi2go.db`;
 
 try {
   Deno.mkdirSync(DB_DIR, { recursive: true });
-} catch (_e) {
-  // Directory already exists or permission issue
-}
+} catch (_e) {}
 
 const db = new Database(DB_PATH);
 
-console.log("Initialize schema for Wifi2Go...");
+console.log("Initialize schema for Wifi2Go V2...");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS admins (
@@ -26,11 +21,23 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS clients (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    two_factor_secret TEXT,
+    two_factor_enabled BOOLEAN DEFAULT 0
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS devices (
     mac_address TEXT PRIMARY KEY,
+    client_id TEXT NOT NULL,
     ip_address TEXT,
     last_seen DATETIME,
-    is_blocked BOOLEAN DEFAULT 0
+    is_blocked BOOLEAN DEFAULT 0,
+    FOREIGN KEY(client_id) REFERENCES clients(id)
   );
 `);
 
@@ -48,12 +55,12 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
-    session_id TEXT NOT NULL,
+    client_id TEXT NOT NULL,
     provider TEXT NOT NULL,
     transaction_id TEXT,
     amount REAL NOT NULL,
     status TEXT NOT NULL,
-    FOREIGN KEY(session_id) REFERENCES sessions(id)
+    FOREIGN KEY(client_id) REFERENCES clients(id)
   );
 `);
 
@@ -75,13 +82,13 @@ db.exec(`
   );
 `);
 
+// Mocks Configurations
 db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run("test_mode", "true");
 
 console.log("Tables created successfully.");
 
-// Default admin config for testing
+// Default admin config
 const defaultAdminUser = "admin";
-// In a real app we would use bcrypt or Web Crypto API for this.
 const mockPasswordHash = "hashed_admin123";
 
 try {

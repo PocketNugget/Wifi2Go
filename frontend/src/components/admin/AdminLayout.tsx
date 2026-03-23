@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ShieldAlert, LogOut } from 'lucide-react';
+import { LayoutDashboard, MonitorSmartphone, ShieldAlert, LogOut, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function AdminLayout() {
@@ -12,7 +12,7 @@ export default function AdminLayout() {
     if (!token) {
       navigate('/admin/login');
     } else {
-      fetch('http://localhost:8443/admin-api/settings', {
+      fetch('/admin-api/settings', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       .then(res => res.json())
@@ -24,7 +24,7 @@ export default function AdminLayout() {
   const toggleTestMode = async () => {
     const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:8443/admin-api/settings', {
+      const res = await fetch('/admin-api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ testMode: !testMode })
@@ -34,7 +34,8 @@ export default function AdminLayout() {
   };
 
   const navItems = [
-    { label: 'Active Devices', path: '/admin/devices', icon: Users },
+    { label: 'Active Devices', path: '/admin/devices', icon: MonitorSmartphone },
+    { label: 'User Management', path: '/admin/users', icon: UsersRound },
     { label: 'Security Logs', path: '/admin/logs', icon: ShieldAlert },
   ];
 
