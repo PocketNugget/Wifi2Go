@@ -7,7 +7,7 @@ import ConnectionActive from './components/ConnectionActive';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
 import ActiveDevices from './components/admin/ActiveDevices';
-import SecurityLogs from './components/admin/SecurityLogs';
+import Logs from './components/admin/Logs';
 import UserManagement from './components/admin/UserManagement';
 
 function App() {
@@ -27,7 +27,7 @@ function App() {
           <Route index element={<Navigate to="/admin/devices" replace />} />
           <Route path="devices" element={<ActiveDevices />} />
           <Route path="users" element={<UserManagement />} />
-          <Route path="logs" element={<SecurityLogs />} />
+          <Route path="logs" element={<Logs />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
