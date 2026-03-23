@@ -166,7 +166,13 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
     if (id) {
       try {
         const db = new Database(DB_PATH);
+        
+        // Cascade delete child records manually to prevent constraint violations or orphaned rows
+        db.prepare("DELETE FROM payments WHERE client_id = ?").run(id);
+        db.prepare("DELETE FROM sessions WHERE mac_address IN (SELECT mac_address FROM devices WHERE client_id = ?)").run(id);
+        db.prepare("DELETE FROM devices WHERE client_id = ?").run(id);
         db.prepare("DELETE FROM clients WHERE id = ?").run(id);
+        
         db.close();
         logger.logEvent("user_deleted", null, null, `Admin deleted client ${id}`);
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: jsonHeaders });
