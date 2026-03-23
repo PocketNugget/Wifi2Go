@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    volumes:
+      - ./backend:/app
+      - wifi2go-db:/app/db_data
+    environment:
+      - PORT=8000
+      - ADMIN_PORT=8443
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"     # Captive Portal Public Port
+      - "8080:8080" # Admin Dashboard Secure Port
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  wifi2go-db:
