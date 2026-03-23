@@ -118,10 +118,3 @@ npm run dev
 ## License
 
 MIT License
-
----
-
-## Contact & Support
-
-- **Email:** <Agrega tu correo en Producción>
-- **GitHub Issues:** Por favor abre un Issue para mejoras y peticiones.
