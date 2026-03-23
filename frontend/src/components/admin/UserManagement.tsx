@@ -16,6 +16,7 @@ export default function UserManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentId, setCurrentId] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
@@ -74,15 +75,16 @@ export default function UserManagement() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to completely delete this client?")) return;
+  const executeDelete = async () => {
+    if (!deleteConfirmId) return;
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`/admin-api/clients/${id}`, {
+      const res = await fetch(`/admin-api/clients/${deleteConfirmId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to delete");
+      setDeleteConfirmId(null);
       fetchClients();
     } catch (err: any) {
       alert("Error: " + err.message);
@@ -152,7 +154,7 @@ export default function UserManagement() {
                   <button onClick={() => openEditModal(client)} className="p-2 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-500/20 rounded-xl transition-colors">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(client.id)} className="p-2 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/20 rounded-xl transition-colors">
+                  <button onClick={() => setDeleteConfirmId(client.id)} className="p-2 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/20 rounded-xl transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -202,6 +204,21 @@ export default function UserManagement() {
                 <button type="submit" className="flex-1 apple-btn bg-appleBlue text-white hover:bg-blue-600">{isEditMode ? 'Save Changes' : 'Create Client'}</button>
               </div>
             </form>
+          </motion.div>
+        </div>
+      )}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-appleDark w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 text-center border border-red-100 dark:border-red-500/20">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Delete Client?</h3>
+            <p className="text-gray-500 text-sm mb-6">This action is irreversible. It will also delete all their devices, sessions, and payment records.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 py-3 font-semibold rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">Cancel</button>
+              <button onClick={executeDelete} className="flex-1 py-3 font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/30">Delete</button>
+            </div>
           </motion.div>
         </div>
       )}

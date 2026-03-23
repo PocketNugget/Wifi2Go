@@ -79,6 +79,24 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
     return new Response(JSON.stringify(result), { status: 200, headers: jsonHeaders });
   }
 
+  // Protected route: Revoke Device
+  if (url.pathname === "/admin-api/devices/revoke" && req.method === "POST") {
+    try {
+      const { mac } = await req.json();
+      const db = new Database(DB_PATH);
+      db.prepare("UPDATE sessions SET status = 'revoked', end_time = ? WHERE mac_address = ? AND status = 'active'").run(new Date().toISOString(), mac);
+      db.close();
+      
+      // Import firewall conditionally or dynamically to revoke access
+      import("../services/firewall.ts").then(m => m.firewall.revokeInternetAccess(mac)).catch(e => console.error(e));
+      
+      logger.logEvent("firewall_update", null, mac, `Admin manually revoked internet access`);
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: jsonHeaders });
+    } catch (e: any) {
+      return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: jsonHeaders });
+    }
+  }
+
   // Protected route: Logs
   if (url.pathname === "/admin-api/logs" && req.method === "GET") {
     const db = new Database(DB_PATH);

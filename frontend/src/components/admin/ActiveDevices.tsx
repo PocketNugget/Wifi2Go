@@ -15,6 +15,7 @@ export default function ActiveDevices() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [stats, setStats] = useState({ activeConnections: 0, dailyRevenue: 0, uniqueUsers: 0 });
   const [loading, setLoading] = useState(true);
+  const [revokeMac, setRevokeMac] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +38,24 @@ export default function ActiveDevices() {
     };
     fetchData();
   }, []);
+
+  const executeRevoke = async () => {
+    if (!revokeMac) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch("/admin-api/devices/revoke", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ mac: revokeMac })
+      });
+      if (res.ok) {
+         const h = { "Authorization": `Bearer ${token}` };
+         const devRes = await fetch("/admin-api/devices", { headers: h });
+         if (devRes.ok) setDevices(await devRes.json());
+      }
+      setRevokeMac(null);
+    } catch (e) { alert("Failed to revoke"); }
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -86,15 +105,30 @@ export default function ActiveDevices() {
                 <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{dev.ip}</td>
                 <td className="px-6 py-4 font-medium">{dev.timeRemaining}</td>
                 <td className="px-6 py-4 text-right">
-                  <button className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-lg transition-colors inline-flex items-center gap-2 text-sm font-medium">
+                  {dev.status === 'active' && <button onClick={() => setRevokeMac(dev.mac)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-lg transition-colors inline-flex items-center gap-2 text-sm font-medium">
                     <Ban className="w-4 h-4" /> Revoke
-                  </button>
+                  </button>}
                 </td>
               </motion.tr>
             ))}
           </tbody>
         </table>
       </div>
+      {revokeMac && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-appleDark w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 text-center border border-red-100 dark:border-red-500/20">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-4">
+              <Ban className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Revoke Access?</h3>
+            <p className="text-gray-500 text-sm mb-6">Immediate network ban for MAC address {revokeMac}.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setRevokeMac(null)} className="flex-1 py-3 font-semibold rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">Cancel</button>
+              <button onClick={executeRevoke} className="flex-1 py-3 font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/30">Revoke</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
