@@ -1,4 +1,4 @@
-import { Database } from "jsr:@db/sqlite";
+import { DatabaseSync as Database } from "node:sqlite";
 
 // Relative to the `/app` inside docker, or `./backend` locally.
 // Our main process will run from `backend` directory.

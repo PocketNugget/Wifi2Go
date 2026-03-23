@@ -4,6 +4,7 @@ import { logger } from "./services/logger.ts";
 import { firewall } from "./services/firewallService.ts";
 import { handleAdminRoutes } from "./routes/admin.ts";
 import { handlePaymentRoutes } from "./routes/payments.ts";
+import { handleClientRoutes } from "./routes/client.ts";
 
 const PORT = parseInt(Deno.env.get("PORT") || "8000");
 const ADMIN_PORT = parseInt(Deno.env.get("ADMIN_PORT") || "8443");
@@ -24,6 +25,10 @@ async function handlePublicAPI(req: Request): Promise<Response> {
   // Route any /api/payments requests
   if (url.pathname.startsWith("/api/payments")) {
     return handlePaymentRoutes(req);
+  }
+
+  if (url.pathname.startsWith("/api/client")) {
+    return handleClientRoutes(req);
   }
 
   return new Response(JSON.stringify({ status: "ok", message: "Wifi2Go Public API is running." }), {

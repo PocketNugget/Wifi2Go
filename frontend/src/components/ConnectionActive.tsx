@@ -5,9 +5,26 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ConnectionActive() {
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(3600); 
+  const [timeLeft, setTimeLeft] = useState(0); 
 
   useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/client/status?mac=AA:BB:CC:DD:EE:FF');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.active) {
+            setTimeLeft(data.timeRemaining);
+          } else {
+            console.log("No active connection.");
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    checkStatus();
+
     const timer = setInterval(() => {
       setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
     }, 1000);

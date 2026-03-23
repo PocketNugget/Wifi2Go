@@ -1,16 +1,37 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, ShieldAlert, LogOut } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function AdminLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const [testMode, setTestMode] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem('admin_token')) {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
       navigate('/admin/login');
+    } else {
+      fetch('http://localhost:8443/admin-api/settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => setTestMode(data.testMode))
+      .catch(console.error);
     }
   }, [navigate]);
+
+  const toggleTestMode = async () => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch('http://localhost:8443/admin-api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ testMode: !testMode })
+      });
+      if (res.ok) setTestMode(!testMode);
+    } catch (e) { console.error(e); }
+  };
 
   const navItems = [
     { label: 'Active Devices', path: '/admin/devices', icon: Users },
@@ -46,7 +67,16 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        <div className="p-4">
+        <div className="p-4 space-y-4">
+          <div className="px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-between">
+            <span className="text-sm font-medium">Demo Mode</span>
+            <button 
+              onClick={toggleTestMode}
+              className={`w-11 h-6 rounded-full transition-colors ${testMode ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'} relative`}
+            >
+              <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${testMode ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors font-medium">
             <LogOut className="w-5 h-5" />
             Sign Out

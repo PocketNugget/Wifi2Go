@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Clock, Zap, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const plans = [
@@ -9,10 +10,38 @@ const plans = [
 
 export default function Pricing() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
 
-  const handleSelect = (planId: string) => {
-    // Navigate to active connection (mocking successful payment for now)
-    navigate('/active');
+  useEffect(() => {
+    fetch('http://localhost:8000/api/client/config')
+      .then(res => res.json())
+      .then(data => setIsTestMode(data.testMode))
+      .catch(console.error);
+  }, []);
+
+  const handleSelect = async (planId: string) => {
+    setLoading(true);
+    try {
+      if (isTestMode) {
+        const res = await fetch('http://localhost:8000/api/payments/mock-success', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            macAddress: "AA:BB:CC:DD:EE:FF", 
+            ipAddress: "192.168.1.100",
+            planHours: planId === '1hr' ? 1 : 24
+          })
+        });
+        if (res.ok) navigate('/active');
+      } else {
+        alert("Redirecting to secure Stripe Checkout... (Demo Mode is OFF)");
+        // window.location.href = result.sessionUrl;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
   };
 
   return (
@@ -33,7 +62,7 @@ export default function Pricing() {
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="text-gray-500 max-w-lg mx-auto"
           >
-            Access our premium network with flexible plans designed for your needs.
+            Access our premium network with flexible plans designed for your needs. {loading && "Processing..."}
           </motion.p>
         </div>
 
@@ -46,7 +75,7 @@ export default function Pricing() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 * (idx + 1), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => handleSelect(plan.id)}
+                onClick={() => !loading && handleSelect(plan.id)}
                 className={`glass relative cursor-pointer group flex flex-col p-8 rounded-[2rem] border-2 transition-all ${plan.popular ? 'border-appleBlue/50' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
               >
                 {plan.popular && (

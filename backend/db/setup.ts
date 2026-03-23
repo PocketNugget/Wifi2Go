@@ -1,4 +1,4 @@
-import { Database } from "jsr:@db/sqlite";
+import { DatabaseSync as Database } from "node:sqlite";
 
 // Absolute path to the database or relative to workspace. Deno will be mounted at /app
 // Inside docker: /app/db_data/wifi2go.db
@@ -68,6 +68,15 @@ db.exec(`
   );
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+`);
+
+db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run("test_mode", "true");
+
 console.log("Tables created successfully.");
 
 // Default admin config for testing
@@ -78,14 +87,14 @@ const mockPasswordHash = "hashed_admin123";
 try {
   const insertCmd = db.prepare("INSERT INTO admins (username, password_hash, role) VALUES (?, ?, ?)");
   insertCmd.run(defaultAdminUser, mockPasswordHash, "admin");
-  console.log(\`Default admin created: \${defaultAdminUser}\`);
+  console.log(`Default admin created: ${defaultAdminUser}`);
 } catch (e: any) {
   if (e.message && e.message.includes("UNIQUE constraint failed")) {
-    console.log(\`Default admin '\${defaultAdminUser}' already exists.\`);
+    console.log(`Default admin '${defaultAdminUser}' already exists.`);
   } else {
     throw e;
   }
 }
 
 db.close();
-console.log(\`Database setup completed at: \${DB_PATH}\`);
+console.log(`Database setup completed at: ${DB_PATH}`);
