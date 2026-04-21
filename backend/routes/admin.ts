@@ -99,17 +99,50 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
 
   // Protected route: Logs
   if (url.pathname === "/admin-api/logs" && req.method === "GET") {
+    const limitParam = url.searchParams.get("limit");
+    const typeParam = url.searchParams.get("type");
+    const limit = Math.min(Math.max(parseInt(limitParam || "100"), 1), 500);
+
     const db = new Database(DB_PATH);
-    const logs = db.prepare("SELECT * FROM security_logs ORDER BY timestamp DESC LIMIT 50").all();
+    let logs: any[];
+    if (typeParam) {
+      logs = db.prepare("SELECT * FROM security_logs WHERE event_type = ? ORDER BY timestamp DESC LIMIT ?").all(typeParam, limit);
+    } else {
+      logs = db.prepare("SELECT * FROM security_logs ORDER BY timestamp DESC LIMIT ?").all(limit);
+    }
     db.close();
-    
+
+    const severityMap: Record<string, "high" | "medium" | "info"> = {
+      auth_failure:    "high",
+      spoof_attempt:   "high",
+      network_error:   "high",
+      firewall_update: "medium",
+      system_start:    "info",
+      user_created:    "info",
+      user_updated:    "info",
+      user_deleted:    "medium",
+    };
+
+    const labelMap: Record<string, string> = {
+      auth_failure:    "Auth Failure",
+      spoof_attempt:   "Spoof Attempt",
+      network_error:   "Network Error",
+      firewall_update: "Firewall Update",
+      system_start:    "System Start",
+      user_created:    "User Created",
+      user_updated:    "User Updated",
+      user_deleted:    "User Deleted",
+    };
+
     const result = logs.map((l: any) => ({
       id: l.id,
-      time: new Date(l.timestamp).toLocaleTimeString(),
+      timestamp: l.timestamp,
       type: l.event_type,
-      details: l.details,
-      ip: l.ip_address || "N/A",
-      severity: l.event_type.includes("failure") || l.event_type.includes("error") ? 'high' : 'info'
+      label: labelMap[l.event_type] ?? l.event_type.replace(/_/g, " "),
+      details: l.details || "",
+      ip: l.ip_address || null,
+      mac: l.mac_address || null,
+      severity: severityMap[l.event_type] ?? "info",
     }));
 
     return new Response(JSON.stringify(result), { status: 200, headers: jsonHeaders });

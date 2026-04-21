@@ -13,6 +13,7 @@ export default {
         appleBlue: '#007AFF', // iOS blue
         appleGray: '#F2F2F7',
         appleDark: '#1C1C1E',
+        'gray-950': '#0a0a0f',
       }
     },
   },
