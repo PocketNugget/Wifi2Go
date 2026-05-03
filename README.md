@@ -10,8 +10,8 @@
 
 ---
 
-## 📋 Estado Actual: Fase 2 Completada (Portal Privado & Público Listos)
-El proyecto cuenta con un backend consolidado nativamente en Deno que administra la arquitectura concurrente para tanto el Panel Administrativo (Puerto 8080) como el Portal Cautivo para Invitados (Puerto 80). Se ha incluido soporte de Autenticación cifrada en Dos Pasos (TOTP) al vuelo, Webhooks transaccionales y procesadores dinámicos de conexiones efímeras enganchadas simuladamente interactuando en las restricciones del Firewall perimetral. **Referirse a `DOCUMENTATION.md` y a `NEXT_STEPS.md` para ver el diseño técnico formal y el roadmap a futuro.**
+## 📋 Estado Actual: Fase 3 Completada (Integración de Pagos & Simulación de Red)
+El proyecto cuenta con un backend consolidado nativamente en Deno que administra la arquitectura concurrente para el Panel Administrativo (Puerto 8080), el Portal Cautivo para Invitados (Puerto 80) y un **Servidor de Internet Simulado (Puerto 3000)**. Se ha implementado integración oficial y segura con **Stripe y PayPal**, webhooks verificados criptográficamente, resolución de IP vía ARP y un motor de simulacro de firewall en tiempo real. **Referirse a `DOCUMENTATION.md` para ver el diseño técnico formal.**
 
 ---
 

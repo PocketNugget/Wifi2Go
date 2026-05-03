@@ -26,16 +26,18 @@ La persistencia de datos ocurre en `./db_data/wifi2go.db`, soportando llaves for
 - Inicio de sesión en **Dos Fases**: Validación primaria de la clave y posterior ingreso imperativo del código 6-dígitos en vivo (si el usuario así lo aprobase o forzase). Una vez validado el 2FA de manera positiva, se entrega el JWT para proceder a la página de compra.
 
 ## 4. Flujo del Portal Cautivo y Webhooks
-### Modo Simulacro (Free Trial & Mock Testing)
-Cuando un cliente aprueba un plan gratuito (o el entorno interno está marcado explícitamente para pruebas), la UI despacha una confirmación directa a `/api/payments/webhook`.
-1. Deno registra de inmediato un pago simulado bajo el label `completed`.
-2. Intercepta la dirección MAC local y los `durationMinutes`, inyectando una sesión activa a la Base de Datos.
-3. El módulo aislante `firewall.ts` ejecuta scripts `iptables` reales en maquinas Linux (o logs condicionales perimetrales si se desarrolla en macOS) mandando un axioma de ACEPTAR flujo para esa MAC específica por el transcurso de tiempo delimitado.
+## 4. Flujo del Portal Cautivo, Pagos y Simulación
+### Simulación de Internet (Puerto 3000)
+Para fines de demostración en vivo (Live Demo) sin requerir configuraciones complejas de enrutamiento y DNS, el sistema incluye un **Servidor de Internet Simulado** corriendo en el Puerto 3000. 
+1. Cuando un usuario navega a `http://localhost:3000/?mac=...`, el servidor consulta la base de datos `sessions`.
+2. Si no hay pago activo, intercepta la petición, redirecciona al Portal Cautivo (Puerto 80) y registra un evento `internet_blocked` en los logs de seguridad.
+3. Si existe un pago activo, muestra una página de acceso exitoso ("Welcome to the Internet") y registra `internet_access`.
 
-### Modo Producción (Checkout Oficial)
-1. Al cliquear tarjetas de cobro real ($2 o $8), la app interrumpe flujos locales y solicita un handshake contra `/api/payments/checkout`.
-2. Deno inicializa una sesión aislada de **Stripe** de forma segura inyectando el PriceID y devuelve la URL remota encriptada.
-3. El cliente es redirigido a poner su tarjeta bajo infraestructuras PCI Compliance externas. Una vez exitoso el escrutinio financiero, Stripe hace POST a nuestro endpoint `/api/payments/stripe-webhook` autorizando silenciosamente la MAC en el firewall.
+### Modo Producción (Stripe & PayPal)
+1. El backend expone un catálogo de precios cerrado (`PLANS`), asegurando que ningún cliente pueda alterar el precio desde el Frontend.
+2. **Stripe**: Al seleccionar pago con tarjeta, se crea un `Checkout Session` seguro inyectando la MAC del cliente en la `metadata`. El cliente paga en la página alojada por Stripe, y luego un Webhook (`/api/payments/stripe-webhook`) protegido criptográficamente con firmas (`STRIPE_WEBHOOK_SECRET`) autoriza la conexión en la base de datos y firewall.
+3. **PayPal**: Se utiliza el SDK oficial para crear y capturar órdenes servidor-a-servidor (`/api/payments/paypal/create-order` y `/api/payments/paypal/capture-order`). El acceso se concede sincrónicamente al confirmar los fondos.
+4. Una vez procesado cualquier pago, el cliente es redirigido a `/payment-success` y el servidor aprovisiona las reglas de `iptables` reales (o registra el evento en macOS).
 
 ## 5. Criterios de Interfaz Urbana
 El frontend abraza ciegamente normas estrictas de diseño vanguardista inspiradas al ecosistema Apple. Emplea nativamente la manipulación de árboles físicos (DOM) a través de `framer-motion` para propiciar curvas suaves y transiciones continuas. Los módulos abstractos se difuminan con clases generadas por `TailwindCSS` emulando trasfondos de cristal y nitidez fotográfica (`glassmorphism`, `backdrop-blur`).

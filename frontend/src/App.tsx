@@ -3,6 +3,7 @@ import Welcome from './components/Welcome';
 import ClientLogin from './components/client/ClientLogin';
 import ClientRegister from './components/client/ClientRegister';
 import Pricing from './components/Pricing';
+import PaymentSuccess from './components/PaymentSuccess';
 import ConnectionActive from './components/ConnectionActive';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
@@ -19,6 +20,7 @@ function App() {
         <Route path="/login" element={<ClientLogin />} />
         <Route path="/register" element={<ClientRegister />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/active" element={<ConnectionActive />} />
         
         {/* Admin Dashboard Routes */}

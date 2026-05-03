@@ -7,12 +7,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+      - "3000:3000"
     volumes:
       - ./backend:/app
       - wifi2go-db:/app/db_data
     environment:
       - PORT=8000
       - ADMIN_PORT=8443
+      - INTERNET_PORT=3000
     restart: unless-stopped
 
   frontend:

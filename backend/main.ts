@@ -6,8 +6,11 @@ import { handleAdminRoutes } from "./routes/admin.ts";
 import { handlePaymentRoutes } from "./routes/payments.ts";
 import { handleClientRoutes } from "./routes/client.ts";
 
+import { handleSimulatedInternet } from "./simulatedInternet.ts";
+
 const PORT = parseInt(Deno.env.get("PORT") || "8000");
 const ADMIN_PORT = parseInt(Deno.env.get("ADMIN_PORT") || "8443");
+const INTERNET_PORT = parseInt(Deno.env.get("INTERNET_PORT") || "3000");
 
 logger.logEvent("system_start", "0.0.0.0", null, "Backend API initialized.");
 
@@ -53,3 +56,6 @@ Deno.serve({ port: PORT, onListen: ({ port }) => console.log(`Public API Server 
 
 // Start Admin API Server
 Deno.serve({ port: ADMIN_PORT, onListen: ({ port }) => console.log(`Admin API Server running on http://localhost:${port}/`) }, handleAdminAPI);
+
+// Start Simulated Internet Server
+Deno.serve({ port: INTERNET_PORT, onListen: ({ port }) => console.log(`Simulated Internet Server running on http://localhost:${port}/`) }, handleSimulatedInternet);
