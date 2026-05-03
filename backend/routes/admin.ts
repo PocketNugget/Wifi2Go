@@ -44,16 +44,17 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
   // Protected route: Dashboard Stats
   if (url.pathname === "/admin-api/dashboard-stats" && req.method === "GET") {
     const db = new Database(DB_PATH);
-    const activeConnections = db.prepare("SELECT COUNT(*) as count FROM sessions WHERE status = 'active'").get() as any;
+    const nowISO = new Date().toISOString();
+    const activeConnections = db.prepare("SELECT COUNT(*) as count FROM sessions WHERE status = 'active' AND end_time > ?").get(nowISO) as any;
     const dailyRevenue = db.prepare("SELECT SUM(amount) as total FROM payments WHERE status = 'completed' AND datetime >= date('now', '-1 day')").get() as any;
-    const totalDevices = db.prepare("SELECT COUNT(*) as count FROM devices").get() as any;
+    const totalClients = db.prepare("SELECT COUNT(*) as count FROM clients").get() as any;
     db.close();
 
     return new Response(JSON.stringify({
       message: "Data retrieved securely",
       activeConnections: activeConnections?.count || 0,
       dailyRevenue: dailyRevenue?.total || 124.50,
-      uniqueUsers: totalDevices?.count || 0
+      uniqueUsers: totalClients?.count || 0
     }), { status: 200, headers: jsonHeaders });
   }
 
@@ -61,7 +62,8 @@ export async function handleAdminRoutes(req: Request): Promise<Response> {
   if (url.pathname === "/admin-api/devices" && req.method === "GET") {
     const db = new Database(DB_PATH);
     const devices = db.prepare("SELECT * FROM devices").all();
-    const activeSessions = db.prepare("SELECT * FROM sessions WHERE status = 'active'").all();
+    const nowISO = new Date().toISOString();
+    const activeSessions = db.prepare("SELECT * FROM sessions WHERE status = 'active' AND end_time > ?").all(nowISO);
     db.close();
 
     const result = devices.map((d: any) => {

@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
 import { Mail, Lock, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ClientLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totp, setTotp] = useState('');
@@ -30,7 +31,7 @@ export default function ClientLogin() {
         
         if (res.ok) {
           localStorage.setItem('client_token', data.token);
-          navigate('/pricing');
+          navigate('/pricing' + location.search);
         } else {
           setError(data.error || 'Invalid 2FA code');
         }
@@ -48,7 +49,7 @@ export default function ClientLogin() {
             setClientId(data.id);
           } else {
             localStorage.setItem('client_token', data.token);
-            navigate('/pricing');
+            navigate('/pricing' + location.search);
           }
         } else {
           setError(data.error || 'Invalid credentials');
@@ -106,7 +107,7 @@ export default function ClientLogin() {
 
         {!requires2FA && (
           <p className="text-center text-sm text-gray-500">
-            Need an account? <button type="button" onClick={() => navigate('/register')} className="text-appleBlue font-medium hover:underline">Register now</button>
+            Need an account? <button type="button" onClick={() => navigate('/register' + location.search)} className="text-appleBlue font-medium hover:underline">Register now</button>
           </p>
         )}
       </motion.form>

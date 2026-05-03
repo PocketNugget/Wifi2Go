@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
 import { Mail, Lock, QrCode } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ClientRegister() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -64,12 +65,12 @@ export default function ClientRegister() {
             const res = await fetch('/api/client/enable-2fa', {
               method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: registeredId, totpToken: verifCode })
             });
-            if (res.ok) navigate('/login'); else alert('Invalid code');
+            if (res.ok) navigate('/login' + location.search); else alert('Invalid code');
           }} className="w-full bg-appleBlue text-white font-semibold py-4 rounded-xl shadow-lg transition-colors hover:bg-blue-600">
             Verify and Continue
           </button>
           
-          <button onClick={() => navigate('/login')} className="mt-4 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors">
+          <button onClick={() => navigate('/login' + location.search)} className="mt-4 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors">
             Skip for now
           </button>
         </motion.div>
@@ -107,7 +108,7 @@ export default function ClientRegister() {
         </button>
 
         <p className="text-center text-sm text-gray-500">
-          Already have an account? <button type="button" onClick={() => navigate('/login')} className="text-appleBlue font-medium hover:underline">Log in</button>
+          Already have an account? <button type="button" onClick={() => navigate('/login' + location.search)} className="text-appleBlue font-medium hover:underline">Log in</button>
         </p>
       </motion.form>
     </div>

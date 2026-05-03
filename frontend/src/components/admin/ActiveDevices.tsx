@@ -66,7 +66,7 @@ export default function ActiveDevices() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="glass p-6 rounded-[2rem]">
-          <h3 className="text-gray-500 font-medium mb-1">Total Devices</h3>
+          <h3 className="text-gray-500 font-medium mb-1">Total Accounts</h3>
           <p className="text-4xl font-bold">{stats.uniqueUsers}</p>
         </div>
         <div className="glass p-6 rounded-[2rem]">

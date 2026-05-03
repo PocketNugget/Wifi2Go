@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { Wifi, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Welcome() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -24,7 +25,7 @@ export default function Welcome() {
         <motion.button 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/login' + location.search)}
           className="w-full bg-appleBlue text-white rounded-2xl py-4 font-semibold flex items-center justify-center gap-2 shadow-lg shadow-appleBlue/30 transition-shadow"
         >
           Get Connected

@@ -11,9 +11,9 @@ function hasActiveSession(macAddress: string): boolean {
       SELECT 1 FROM sessions 
       WHERE mac_address = ? 
       AND status = 'active' 
-      AND end_time > datetime('now', 'localtime')
+      AND end_time > ?
     `);
-    const active = stmt.get(macAddress);
+    const active = stmt.get(macAddress, new Date().toISOString());
     db.close();
     return !!active;
   } catch (error) {
