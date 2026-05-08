@@ -4,20 +4,47 @@ import { generateToken } from "../utils/jwt.ts";
 import { logger } from "../services/logger.ts";
 import { firewall } from "../services/firewall.ts";
 
+import { getMacFromIp } from "../services/network.ts";
+
 const DB_PATH = Deno.env.get("DB_PATH") || "./db_data/wifi2go.db";
 
 export async function handleClientRoutes(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const jsonHeaders = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
 
+  // Helper to get client IP and MAC
+  const getClientIdentity = async (r: Request) => {
+    // In production, we assume the backend is behind a reverse proxy or using host networking
+    const ip = r.headers.get("x-forwarded-for")?.split(',')[0].trim() || 
+               r.headers.get("x-real-ip") || 
+               "127.0.0.1";
+    const mac = await getMacFromIp(ip);
+    return { ip, mac };
+  };
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { ...jsonHeaders, "Access-Control-Allow-Headers": "Content-Type" }});
   }
 
+  // New route for frontend to discover its identity
+  if (req.method === "GET" && url.pathname === "/api/client/whoami") {
+    const identity = await getClientIdentity(req);
+    return new Response(JSON.stringify(identity), { status: 200, headers: jsonHeaders });
+  }
+
   // Get status of the client's MAC address
   if (req.method === "GET" && url.pathname === "/api/client/status") {
-    const macArg = url.searchParams.get("mac");
-    if (!macArg) return new Response(JSON.stringify({ error: "MAC required" }), { status: 400, headers: jsonHeaders });
+    let macArg = url.searchParams.get("mac");
+    
+    // If no MAC provided in URL, try to discover it from the request IP
+    if (!macArg) {
+      const identity = await getClientIdentity(req);
+      macArg = identity.mac;
+    }
+
+    if (!macArg) {
+      return new Response(JSON.stringify({ error: "MAC could not be identified automatically. Please join the WiFi." }), { status: 400, headers: jsonHeaders });
+    }
 
     try {
       const db = new Database(DB_PATH);
@@ -29,10 +56,10 @@ export async function handleClientRoutes(req: Request): Promise<Response> {
         const now = new Date().getTime();
         const end = new Date(session.end_time).getTime();
         if (now < end) {
-           return new Response(JSON.stringify({ active: true, timeRemaining: Math.floor((end - now)/1000) }), { status: 200, headers: jsonHeaders });
+           return new Response(JSON.stringify({ active: true, timeRemaining: Math.floor((end - now)/1000), mac: macArg }), { status: 200, headers: jsonHeaders });
         }
       }
-      return new Response(JSON.stringify({ active: false, timeRemaining: 0 }), { status: 200, headers: jsonHeaders });
+      return new Response(JSON.stringify({ active: false, timeRemaining: 0, mac: macArg }), { status: 200, headers: jsonHeaders });
     } catch (e: any) {
       return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: jsonHeaders });
     }

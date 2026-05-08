@@ -1,8 +1,8 @@
 {
   "tasks": {
-    "start": "deno run --env --allow-net --allow-env --allow-read --allow-write --allow-ffi --unstable-ffi main.ts",
+    "start": "deno run --env --allow-net --allow-env --allow-read --allow-write --allow-run --allow-ffi --unstable-ffi main.ts",
     "db:setup": "deno run --env --allow-env --allow-read --allow-write --allow-ffi --unstable-ffi db/setup.ts",
-    "dev": "deno run --env --watch --allow-net --allow-env --allow-read --allow-write --allow-ffi --unstable-ffi main.ts"
+    "dev": "deno run --env --watch --allow-net --allow-env --allow-read --allow-write --allow-run --allow-ffi --unstable-ffi main.ts"
   },
   "compilerOptions": {
     "strict": true

@@ -1,7 +1,7 @@
 // Entry point for Deno backend
 
 import { logger } from "./services/logger.ts";
-import { firewall } from "./services/firewallService.ts";
+import { firewall } from "./services/firewall.ts";
 import { handleAdminRoutes } from "./routes/admin.ts";
 import { handlePaymentRoutes } from "./routes/payments.ts";
 import { handleClientRoutes } from "./routes/client.ts";
